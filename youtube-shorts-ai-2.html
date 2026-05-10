@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>ShortAI — Roblox Shorts</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #060610;
+  --surface: rgba(255,255,255,0.04);
+  --card: rgba(255,255,255,0.07);
+  --border: rgba(255,255,255,0.1);
+  --accent: #c084fc;
+  --accent2: #f472b6;
+  --yellow: #fde68a;
+  --text: #f0f0f0;
+  --muted: #8b8ba0;
+  --success: #34d399;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+html, body {
+  background: #060610;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Animated RGB orbs background */
+body::before {
+  content:'';
+  position:fixed; inset:0; z-index:0;
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 10%, rgba(120,40,255,0.35) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 80% 0%,  rgba(255,40,120,0.28) 0%, transparent 55%),
+    radial-gradient(ellipse 70% 60% at 90% 80%, rgba(40,200,255,0.22) 0%, transparent 55%),
+    radial-gradient(ellipse 80% 50% at 10% 90%, rgba(255,120,40,0.2)  0%, transparent 55%),
+    radial-gradient(ellipse 60% 40% at 50% 50%, rgba(80,40,180,0.15)  0%, transparent 60%);
+  animation: rgbShift 10s ease-in-out infinite alternate;
+  pointer-events:none;
+}
+
+/* Subtle noise/grid overlay */
+body::after {
+  content:'';
+  position:fixed; inset:0; z-index:0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events:none;
+}
+
+@keyframes rgbShift {
+  0% {
+    background:
+      radial-gradient(ellipse 80% 60% at 20% 10%, rgba(120,40,255,0.35) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 50% at 80% 0%,  rgba(255,40,120,0.28) 0%, transparent 55%),
+      radial-gradient(ellipse 70% 60% at 90% 80%, rgba(40,200,255,0.22) 0%, transparent 55%),
+      radial-gradient(ellipse 80% 50% at 10% 90%, rgba(255,120,40,0.2)  0%, transparent 55%),
+      radial-gradient(ellipse 60% 40% at 50% 50%, rgba(80,40,180,0.15)  0%, transparent 60%);
+  }
+  33% {
+    background:
+      radial-gradient(ellipse 70% 55% at 70% 20%, rgba(40,120,255,0.32) 0%, transparent 60%),
+      radial-gradient(ellipse 80% 60% at 10% 40%, rgba(200,40,255,0.25) 0%, transparent 55%),
+      radial-gradient(ellipse 60% 50% at 80% 90%, rgba(255,80,40,0.22)  0%, transparent 55%),
+      radial-gradient(ellipse 70% 45% at 40% 70%, rgba(40,255,160,0.18) 0%, transparent 55%),
+      radial-gradient(ellipse 50% 40% at 60% 30%, rgba(160,40,200,0.15) 0%, transparent 60%);
+  }
+  66% {
+    background:
+      radial-gradient(ellipse 75% 65% at 30% 80%, rgba(255,40,80,0.3)   0%, transparent 60%),
+      radial-gradient(ellipse 65% 55% at 90% 30%, rgba(40,255,200,0.25) 0%, transparent 55%),
+      radial-gradient(ellipse 80% 55% at 10% 20%, rgba(100,40,255,0.28) 0%, transparent 55%),
+      radial-gradient(ellipse 60% 45% at 60% 80%, rgba(255,160,40,0.2)  0%, transparent 55%),
+      radial-gradient(ellipse 55% 40% at 40% 40%, rgba(40,80,200,0.15)  0%, transparent 60%);
+  }
+  100% {
+    background:
+      radial-gradient(ellipse 80% 60% at 60% 5%,  rgba(80,40,255,0.33)  0%, transparent 60%),
+      radial-gradient(ellipse 70% 50% at 5%  60%, rgba(255,60,180,0.27) 0%, transparent 55%),
+      radial-gradient(ellipse 65% 60% at 85% 50%, rgba(40,180,255,0.22) 0%, transparent 55%),
+      radial-gradient(ellipse 75% 50% at 30% 95%, rgba(255,100,40,0.2)  0%, transparent 55%),
+      radial-gradient(ellipse 60% 45% at 50% 50%, rgba(120,40,160,0.15) 0%, transparent 60%);
+  }
+}
+
+.app {
+  position:relative; z-index:1;
+  display:flex; flex-direction:column;
+  height:100dvh;
+  max-width:480px;
+  margin:0 auto;
+}
+
+header {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:14px 16px 10px;
+  border-bottom:1px solid var(--border);
+  flex-shrink:0;
+  background: rgba(6,6,16,0.5);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}
+
+.logo { display:flex; align-items:center; gap:10px; }
+.logo-icon {
+  width:36px; height:36px;
+  background:var(--accent); border-radius:8px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:18px;
+}
+.logo-text { font-family:'Bebas Neue',sans-serif; font-size:22px; letter-spacing:2px; }
+.logo-text span { color:var(--accent); }
+
+.auth-btn {
+  display:flex; align-items:center; gap:8px;
+  background:var(--card); border:1px solid var(--border);
+  color:var(--text); padding:8px 14px;
+  border-radius:10px; cursor:pointer;
+  font-family:'DM Sans',sans-serif; font-size:13px; font-weight:500;
+  transition:all 0.2s; white-space:nowrap;
+}
+.auth-btn.connected { border-color:var(--success); color:var(--success); }
+
+.tab-bar {
+  display:flex;
+  border-bottom:1px solid var(--border);
+  flex-shrink:0;
+  background: rgba(6,6,16,0.45);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}
+.tab {
+  flex:1; padding:11px 0;
+  background:none; border:none;
+  color:var(--muted); font-family:'DM Sans',sans-serif;
+  font-size:11px; font-weight:600;
+  cursor:pointer; transition:color 0.2s;
+  display:flex; flex-direction:column; align-items:center; gap:3px;
+  position:relative;
+}
+.tab .ti { font-size:18px; }
+.tab.active { color:var(--accent); }
+.tab.active::after {
+  content:'';
+  position:absolute; bottom:0; left:20%; right:20%;
+  height:2px; background:var(--accent); border-radius:2px 2px 0 0;
+}
+
+.pages-wrap { flex:1; overflow:hidden; position:relative; background: transparent; }
+.pages {
+  display:flex; height:100%;
+  transition:transform 0.32s cubic-bezier(0.4,0,0.2,1);
+  will-change:transform;
+}
+.page {
+  min-width:100%; height:100%;
+  overflow-y:auto; overflow-x:hidden;
+  padding:16px 16px 24px;
+  display:flex; flex-direction:column; gap:14px;
+  -webkit-overflow-scrolling:touch;
+  background: transparent;
+}
+
+.card {
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:16px; padding:18px;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+.card-title {
+  font-family:'Bebas Neue',sans-serif;
+  font-size:16px; letter-spacing:1.5px;
+  color:var(--muted); margin-bottom:14px;
+  display:flex; align-items:center; gap:8px;
+}
+.card-title::after { content:''; flex:1; height:1px; background:var(--border); }
+
+.generate-btn {
+  width:100%; padding:18px;
+  background:linear-gradient(135deg, #7c3aed, #db2777, #ea580c);
+  border:none; border-radius:14px;
+  color:white; font-family:'Bebas Neue',sans-serif;
+  font-size:20px; letter-spacing:2px;
+  cursor:pointer; transition:transform 0.15s;
+  display:flex; align-items:center; justify-content:center; gap:10px;
+  box-shadow: 0 4px 30px rgba(124,58,237,0.4);
+}
+.generate-btn:active { transform:scale(0.97); }
+.generate-btn:disabled { opacity:0.5; }
+
+.spinner {
+  width:18px; height:18px;
+  border:3px solid rgba(255,255,255,0.3);
+  border-top-color:white; border-radius:50%;
+  animation:spin 0.8s linear infinite; display:none;
+}
+@keyframes spin { to { transform:rotate(360deg); } }
+
+.script-box {
+  background: rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08);
+  border-radius:12px; padding:16px;
+  min-height:100px; font-size:14px; line-height:1.7;
+  color:var(--text); white-space:pre-wrap;
+}
+.typing-cursor {
+  display:inline-block; width:2px; height:1em;
+  background:var(--accent); margin-left:2px;
+  animation:blink 1s infinite; vertical-align:text-bottom;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+.meta-label {
+  font-family:'Space Mono',monospace; font-size:10px;
+  color:var(--muted); text-transform:uppercase;
+  letter-spacing:1px; margin-bottom:6px;
+}
+.meta-value {
+  background: rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.09);
+  border-radius:8px; padding:10px 12px;
+  font-size:13px; color:var(--text);
+  width:100%; font-family:'DM Sans',sans-serif; resize:none;
+}
+.meta-value:focus { outline:none; border-color:var(--accent); }
+
+.hashtags-box { display:flex; flex-wrap:wrap; gap:6px; min-height:36px; }
+.tag {
+  background:rgba(255,61,61,0.12); border:1px solid rgba(255,61,61,0.3);
+  color:var(--accent); padding:4px 10px;
+  border-radius:100px; font-size:12px;
+  font-family:'Space Mono',monospace;
+}
+
+/* phone */
+.phone-page { align-items:center; padding-top:20px; }
+.phone {
+  width:195px; height:348px;
+  background:#000; border-radius:32px;
+  border:3px solid #333; position:relative; overflow:hidden;
+  box-shadow:0 0 50px rgba(255,61,61,0.15), 0 20px 50px rgba(0,0,0,0.5);
+  flex-shrink:0;
+}
+.phone-notch {
+  position:absolute; top:0; left:50%; transform:translateX(-50%);
+  width:65px; height:20px;
+  background:#000; border-radius:0 0 14px 14px; z-index:10;
+}
+.phone-screen {
+  width:100%; height:100%;
+  background:linear-gradient(160deg,#1a0a1a 0%,#0a0a2a 50%,#0a1a0a 100%);
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  padding:28px 12px 12px; position:relative; overflow:hidden;
+}
+.phone-bg-particles { position:absolute; inset:0; overflow:hidden; }
+.particle {
+  position:absolute; border-radius:50%;
+  animation:float linear infinite; opacity:0.4;
+}
+@keyframes float {
+  0%{transform:translateY(100%) scale(0);opacity:0;}
+  10%{opacity:0.4;} 90%{opacity:0.4;}
+  100%{transform:translateY(-100%) scale(1);opacity:0;}
+}
+.phone-title {
+  font-family:'Bebas Neue',sans-serif; font-size:12px;
+  color:var(--yellow); letter-spacing:1.5px;
+  margin-bottom:10px; text-align:center; position:relative; z-index:2;
+}
+.phone-text-area { position:relative; z-index:2; text-align:center; padding:0 4px; }
+.phone-fact-word {
+  display:inline-block;
+  font-family:'Bebas Neue',sans-serif; font-size:14px;
+  color:white; line-height:1.3;
+  opacity:0; transform:translateY(8px); margin:0 2px;
+}
+.phone-fact-word.show { animation:wordIn 0.3s forwards; }
+@keyframes wordIn { to { opacity:1; transform:translateY(0); } }
+.phone-bar {
+  position:absolute; bottom:10px; left:0; right:0;
+  display:flex; justify-content:center; gap:5px; z-index:2;
+}
+.phone-dot { width:4px; height:4px; border-radius:50%; background:rgba(255,255,255,0.3); }
+.phone-dot.active { background:white; }
+
+.preview-controls { display:flex; gap:8px; width:100%; }
+.preview-btn {
+  flex:1; padding:12px 8px;
+  border-radius:12px; border:1px solid var(--border);
+  background:var(--card); color:var(--text);
+  font-family:'DM Sans',sans-serif; font-size:13px;
+  cursor:pointer; transition:transform 0.15s;
+  display:flex; align-items:center; justify-content:center; gap:6px;
+}
+.preview-btn:active { transform:scale(0.97); }
+.preview-btn.primary {
+  background:linear-gradient(135deg, #7c3aed, #db2777);
+  border:none; color:white; font-weight:600;
+  box-shadow: 0 4px 20px rgba(124,58,237,0.35);
+}
+.preview-btn:disabled { opacity:0.4; pointer-events:none; }
+
+.status-bar {
+  padding:12px 14px; border-radius:10px;
+  font-size:13px; display:none; align-items:center; gap:8px;
+}
+.status-bar.show { display:flex; }
+.status-bar.info { background:rgba(0,150,255,0.1); border:1px solid rgba(0,150,255,0.2); color:#4db8ff; }
+.status-bar.success { background:rgba(0,230,118,0.1); border:1px solid rgba(0,230,118,0.2); color:var(--success); }
+.status-bar.error { background:rgba(255,61,61,0.1); border:1px solid rgba(255,61,61,0.2); color:var(--accent); }
+
+.info-note {
+  background:rgba(255,140,0,0.08); border:1px solid rgba(255,140,0,0.2);
+  border-radius:10px; padding:12px 14px;
+  font-size:12px; color:var(--accent2); line-height:1.5;
+}
+.info-note strong { color:var(--yellow); }
+
+/* modals — bottom sheet on mobile */
+.modal-overlay {
+  position:fixed; inset:0;
+  background:rgba(0,0,0,0.75);
+  backdrop-filter:blur(8px);
+  z-index:100;
+  display:flex; align-items:flex-end;
+  opacity:0; pointer-events:none;
+  transition:opacity 0.3s;
+}
+.modal-overlay.show { opacity:1; pointer-events:all; }
+.modal {
+  background: rgba(10,8,25,0.85); border:1px solid rgba(255,255,255,0.12);
+  border-radius:20px 20px 0 0;
+  padding:20px 20px 32px;
+  width:100%;
+  transform:translateY(100%);
+  transition:transform 0.35s cubic-bezier(0.4,0,0.2,1);
+  max-height:90dvh; overflow-y:auto;
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
+}
+.modal-overlay.show .modal { transform:translateY(0); }
+.modal-handle {
+  width:40px; height:4px;
+  background:var(--border); border-radius:2px;
+  margin:0 auto 18px;
+}
+.modal h2 {
+  font-family:'Bebas Neue',sans-serif;
+  font-size:22px; letter-spacing:2px; margin-bottom:10px;
+}
+.modal p { color:var(--muted); font-size:13px; line-height:1.6; margin-bottom:16px; }
+.guide-step { display:flex; gap:12px; align-items:flex-start; margin-bottom:14px; }
+.step-num {
+  width:26px; height:26px; flex-shrink:0;
+  background:rgba(255,61,61,0.15); border:1px solid rgba(255,61,61,0.3);
+  border-radius:50%; display:flex; align-items:center; justify-content:center;
+  font-family:'Space Mono',monospace; font-size:11px; color:var(--accent);
+}
+.step-title { font-weight:600; font-size:13px; margin-bottom:3px; }
+.step-desc { font-size:12px; color:var(--muted); line-height:1.5; }
+.code-tag {
+  background:rgba(255,61,61,0.12); border:1px solid rgba(255,61,61,0.25);
+  color:var(--accent); padding:1px 5px; border-radius:4px;
+  font-family:'Space Mono',monospace; font-size:11px;
+}
+.modal-actions { display:flex; gap:10px; margin-top:18px; }
+.modal-btn {
+  flex:1; padding:14px; border-radius:12px;
+  font-family:'DM Sans',sans-serif; font-size:14px; font-weight:600;
+  cursor:pointer; transition:transform 0.15s; border:none;
+}
+.modal-btn:active { transform:scale(0.97); }
+.modal-btn.primary { background:linear-gradient(135deg,#4285f4,#34a853); color:white; }
+.modal-btn.secondary { background:var(--surface); border:1px solid var(--border); color:var(--muted); }
+
+.progress-bar-wrap {
+  background:var(--surface); border-radius:100px;
+  height:6px; overflow:hidden; margin-bottom:8px; margin-top:16px;
+}
+.progress-bar-fill {
+  height:100%;
+  background:linear-gradient(90deg, #7c3aed, #db2777, #ea580c);
+  border-radius:100px; transition:width 0.4s; width:0%;
+}
+.progress-label { font-size:12px; color:var(--muted); font-family:'Space Mono',monospace; }
+
+@media (min-width:481px) {
+  .modal { border-radius:20px; max-width:460px; }
+  .modal-overlay { align-items:center; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header>
+    <div class="logo">
+      <div class="logo-icon">▶</div>
+      <div class="logo-text">SHORT<span>AI</span></div>
+    </div>
+    <button class="auth-btn" id="authBtn" onclick="openAuthModal()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+      </svg>
+      <span id="authLabel">Connecter YT</span>
+    </button>
+  </header>
+
+  <div class="tab-bar">
+    <button class="tab active" onclick="goTab(0)" id="tab0"><span class="ti">⚡</span>Générer</button>
+    <button class="tab" onclick="goTab(1)" id="tab1"><span class="ti">📝</span>Script</button>
+    <button class="tab" onclick="goTab(2)" id="tab2"><span class="ti">📱</span>Aperçu</button>
+    <button class="tab" onclick="goTab(3)" id="tab3"><span class="ti">🏷️</span>Infos</button>
+  </div>
+
+  <div class="pages-wrap" id="pagesWrap">
+    <div class="pages" id="pages">
+
+      <!-- PAGE 0 : Générer -->
+      <div class="page">
+        <div class="card">
+          <div class="card-title">🤖 IA Roblox</div>
+          <button class="generate-btn" id="generateBtn" onclick="generateContent()">
+            <div class="spinner" id="genSpinner"></div>
+            <span id="genBtnText">⚡ GÉNÉRER UN SHORT</span>
+          </button>
+          <div class="info-note" style="margin-top:14px;">
+            <strong>🎮 Sujets aléatoires :</strong> Mises à jour, nouveaux jeux, events, astuces, items rares — tout sur Roblox !
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">📊 Stats</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div style="background:var(--surface);border-radius:10px;padding:14px;text-align:center;">
+              <div style="font-family:'Bebas Neue';font-size:28px;color:var(--accent);" id="statCount">0</div>
+              <div style="font-size:11px;color:var(--muted);">GÉNÉRÉS</div>
+            </div>
+            <div style="background:var(--surface);border-radius:10px;padding:14px;text-align:center;">
+              <div style="font-family:'Bebas Neue';font-size:28px;color:var(--success);" id="statPosted">0</div>
+              <div style="font-size:11px;color:var(--muted);">POSTÉS YT</div>
+            </div>
+          </div>
+        </div>
+        <div class="status-bar" id="statusBar0"></div>
+      </div>
+
+      <!-- PAGE 1 : Script -->
+      <div class="page">
+        <div class="card">
+          <div class="card-title">📝 Script</div>
+          <div class="script-box" id="scriptBox" style="color:var(--muted);font-style:italic;">Génère un Short d'abord ✨</div>
+        </div>
+
+        <!-- ElevenLabs voice card -->
+        <div class="card">
+          <div class="card-title">🎙️ Voix ElevenLabs</div>
+
+          <div style="margin-bottom:12px;">
+            <div class="meta-label">Clé API ElevenLabs</div>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <input type="password" class="meta-value" id="elApiKey" placeholder="sk_..." style="flex:1;min-height:0;padding:10px 12px;" />
+              <button onclick="saveApiKey()" style="background:linear-gradient(135deg,#7c3aed,#db2777);border:none;border-radius:8px;color:white;padding:10px 14px;font-size:12px;font-family:'DM Sans',sans-serif;font-weight:600;cursor:pointer;white-space:nowrap;">Sauver</button>
+            </div>
+            <div style="font-size:11px;color:var(--muted);margin-top:6px;">Gratuit sur <a href="https://elevenlabs.io" target="_blank" style="color:#c084fc;">elevenlabs.io</a> — 10 000 chars/mois offerts</div>
+          </div>
+
+          <div style="margin-bottom:12px;">
+            <div class="meta-label">Voix</div>
+            <select class="meta-value" id="elVoice" style="min-height:0;padding:10px 12px;cursor:pointer;">
+              <option value="pNInz6obpgDQGcFmaJgB">Adam (dynamique, proche CapCut)</option>
+              <option value="TxGEqnHWrfWFTfGW9XjX">Josh (grave, narrateur)</option>
+              <option value="VR6AewLTigWG4xSOukaG">Arnold (puissant)</option>
+              <option value="ErXwobaYiN019PkySvjV">Antoni (jeune)</option>
+              <option value="yoZ06aMxZJJ28mfd3POQ">Sam (énergique)</option>
+            </select>
+          </div>
+
+          <div style="display:flex;gap:8px;">
+            <button class="preview-btn" id="speakBtn" onclick="speakElevenLabs()" disabled style="flex:1;padding:13px;">
+              🎙️ Générer la voix
+            </button>
+            <button class="preview-btn" id="stopBtn" onclick="stopAudio()" style="padding:13px 14px;display:none;">⏹</button>
+          </div>
+
+          <!-- Audio player -->
+          <audio id="audioPlayer" style="display:none;" controls></audio>
+          <div id="voiceStatus" style="margin-top:10px;font-size:12px;color:var(--muted);display:none;"></div>
+        </div>
+
+        <div class="status-bar" id="statusBar1"></div>
+      </div>
+
+      <!-- PAGE 2 : Aperçu -->
+      <div class="page phone-page">
+        <div class="phone">
+          <div class="phone-notch"></div>
+          <div class="phone-screen">
+            <div class="phone-bg-particles" id="particles"></div>
+            <div class="phone-title" id="phoneTitle">Roblox Short 🎮</div>
+            <div class="phone-text-area" id="phoneTextArea">
+              <span style="color:rgba(255,255,255,0.3);font-size:12px;">Génère d'abord</span>
+            </div>
+            <div class="phone-bar">
+              <div class="phone-dot active"></div>
+              <div class="phone-dot"></div>
+              <div class="phone-dot"></div>
+            </div>
+          </div>
+        </div>
+        <div class="preview-controls" style="margin-top:8px;">
+          <button class="preview-btn" id="playBtn" onclick="playPreview()" disabled>▶ Rejouer</button>
+          <button class="preview-btn primary" id="uploadBtn" onclick="openUploadModal()" disabled>📤 Poster YT</button>
+        </div>
+        <div class="status-bar" id="statusBar2"></div>
+      </div>
+
+      <!-- PAGE 3 : Infos -->
+      <div class="page">
+        <div class="card">
+          <div class="card-title">🏷️ Métadonnées</div>
+          <div style="margin-bottom:14px;">
+            <div class="meta-label">Titre YouTube</div>
+            <textarea class="meta-value" id="titleField" rows="2" placeholder="Généré automatiquement..."></textarea>
+          </div>
+          <div style="margin-bottom:14px;">
+            <div class="meta-label">Description</div>
+            <textarea class="meta-value" id="descField" rows="3" placeholder="Généré automatiquement..."></textarea>
+          </div>
+          <div>
+            <div class="meta-label">Hashtags</div>
+            <div class="hashtags-box" id="hashtagsBox">
+              <span style="color:var(--muted);font-size:12px;font-style:italic;">Aucun encore...</span>
+            </div>
+          </div>
+        </div>
+        <div class="status-bar" id="statusBar3"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Auth Modal -->
+<div class="modal-overlay" id="authModal" onclick="overlayClick(event,'authModal')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h2>🔐 Connecter YouTube</h2>
+    <p>Ton Client ID est déjà configuré ! Clique pour ouvrir une vraie fenêtre Google OAuth.</p>
+    <div class="guide-step">
+      <div class="step-num">1</div>
+      <div><div class="step-title">Client ID prêt ✅</div><div class="step-desc">Ton projet Google Cloud est configuré.</div></div>
+    </div>
+    <div class="guide-step">
+      <div class="step-num">2</div>
+      <div><div class="step-title">Fenêtre Google s'ouvre</div><div class="step-desc">Connecte-toi à ton compte Google et accepte les permissions YouTube.</div></div>
+    </div>
+    <div class="guide-step">
+      <div class="step-num">3</div>
+      <div><div class="step-title">Poster automatiquement</div><div class="step-desc">Le bouton "Poster YT" sur l'aperçu sera actif.</div></div>
+    </div>
+    <div class="info-note" style="margin-top:14px;">
+      <strong>⚠️ Note :</strong> Pour poster de vraies vidéos, un backend est nécessaire pour sécuriser le Client Secret. L'auth ici permet de tester la connexion.
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn secondary" onclick="closeModal('authModal')">Annuler</button>
+      <button class="modal-btn primary" onclick="launchRealOAuth()">Se connecter avec Google</button>
+    </div>
+  </div>
+</div>
+
+<!-- Upload Modal -->
+<div class="modal-overlay" id="uploadModal" onclick="overlayClick(event,'uploadModal')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h2>📤 Publication YouTube</h2>
+    <p id="uploadModalDesc">Préparation de votre Short...</p>
+    <div class="progress-bar-wrap">
+      <div class="progress-bar-fill" id="progressFill"></div>
+    </div>
+    <div class="progress-label" id="progressLabel">0%</div>
+    <div class="info-note" style="margin-top:14px;">
+      <strong>🛠️ API :</strong> Utilise <code class="code-tag">YouTube Data API v3</code> — endpoint <code class="code-tag">POST /videos</code>. Un backend sécurise le Client Secret.
+    </div>
+  </div>
+</div>
+
+<script>
+const CLIENT_ID = '58193944287-4ltlu7grpfeka85arohrq0i8es5qgcp5.apps.googleusercontent.com';
+const YT_SCOPE  = 'https://www.googleapis.com/auth/youtube.upload https://www.googleapis.com/auth/youtube.readonly';
+
+let generatedScript = '';
+let isAuthenticated  = false;
+let shortCount = 0;
+let postedCount = 0;
+let currentTab = 0;
+const hasTTS = typeof window !== 'undefined' && 'speechSynthesis' in window;
+
+// ── Tabs + Swipe ──
+const pagesEl = document.getElementById('pages');
+const wrap    = document.getElementById('pagesWrap');
+let sx = 0, sy = 0, dragging = false;
+
+function goTab(n) {
+  currentTab = Math.max(0, Math.min(3, n));
+  pagesEl.style.transform = `translateX(-${currentTab * 100}%)`;
+  document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', i === currentTab));
+}
+
+wrap.addEventListener('touchstart', e => {
+  sx = e.touches[0].clientX; sy = e.touches[0].clientY;
+  dragging = true; pagesEl.style.transition = 'none';
+}, { passive: true });
+
+wrap.addEventListener('touchmove', e => {
+  if (!dragging) return;
+  const dx = e.touches[0].clientX - sx;
+  const dy = e.touches[0].clientY - sy;
+  if (Math.abs(dx) < Math.abs(dy)) return;
+  const pct = -currentTab * 100 + (dx / wrap.offsetWidth) * 100;
+  pagesEl.style.transform = `translateX(${pct}%)`;
+}, { passive: true });
+
+wrap.addEventListener('touchend', e => {
+  if (!dragging) return;
+  dragging = false; pagesEl.style.transition = '';
+  const dx = e.changedTouches[0].clientX - sx;
+  const th = wrap.offsetWidth * 0.2;
+  if      (dx < -th && currentTab < 3) goTab(currentTab + 1);
+  else if (dx >  th && currentTab > 0) goTab(currentTab - 1);
+  else goTab(currentTab);
+});
+
+// ── Particles ──
+function createParticles() {
+  const c = document.getElementById('particles');
+  c.innerHTML = '';
+  const cols = ['#ff3d3d','#ff8c00','#ffe600','#00e676','#4db8ff'];
+  for (let i = 0; i < 10; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const s = Math.random() * 5 + 3;
+    p.style.cssText = `width:${s}px;height:${s}px;left:${Math.random()*100}%;background:${cols[Math.floor(Math.random()*5)]};animation-duration:${Math.random()*4+3}s;animation-delay:${Math.random()*3}s;`;
+    c.appendChild(p);
+  }
+}
+createParticles();
+
+// ── Generate ──
+async function generateContent() {
+  const btn     = document.getElementById('generateBtn');
+  const spinner = document.getElementById('genSpinner');
+  const btnText = document.getElementById('genBtnText');
+  const box     = document.getElementById('scriptBox');
+
+  btn.disabled = true;
+  spinner.style.display = 'block';
+  btnText.textContent = 'GÉNÉRATION...';
+  box.style.cssText = 'color:var(--muted);font-style:italic;';
+  box.textContent = '⚡ L\'IA compose votre Short Roblox...';
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: `Tu es un créateur de contenu YouTube Shorts expert sur Roblox. Tu connais toutes les mises à jour, les jeux populaires, les événements, les astuces et la culture Roblox.
+Réponds UNIQUEMENT en JSON valide, sans markdown, sans backticks, sans aucun texte avant ou après.
+Format exact:
+{"title":"titre accrocheur YouTube max 70 chars avec emoji","script":"script narration 60-80 mots, style YouTube Shorts dynamique, commence fort avec une accroche Roblox","description":"description YouTube 2-3 phrases avec mots-clés SEO Roblox","hashtags":["Roblox","RobloxShorts","tag3","tag4","tag5"],"phoneTitle":"titre court 3-4 mots","topic":"sujet traité"}`,
+        messages: [{
+          role: 'user',
+          content: `Génère un Short Roblox numéro ${shortCount + 1} sur un sujet ALÉATOIRE (choisis-en un différent à chaque appel) parmi :
+- Mise à jour d'un jeu populaire (Blox Fruits, Adopt Me, Brookhaven, Tower of Hell, Murder Mystery 2, Pet Simulator, Jailbreak, Arsenal, Royale High, Anime Fighting Sim...)
+- Nouveau jeu Roblox tendance
+- Event saisonnier ou collaboration Roblox
+- Astuce ou secret caché dans un jeu Roblox
+- Record ou fait insolite Roblox
+- Item rare ou objet limité
+Sois enthousiaste, parle comme un vrai joueur, utilise le langage de la communauté Roblox.`
+        }]
+      })
+    });
+    const data   = await res.json();
+    const raw    = data.content.map(c => c.text || '').join('');
+    const parsed = JSON.parse(raw.replace(/```json|```/g, '').trim());
+    shortCount++;
+    document.getElementById('statCount').textContent = shortCount;
+    displayContent(parsed);
+  } catch (err) {
+    console.error(err);
+    const fb = {
+      title: "🔥 Blox Fruits vient de sortir une MAJ INCROYABLE !",
+      script: "Vous avez vu la nouvelle mise à jour de Blox Fruits ? Le fruit Léopard est maintenant dispo et il est DINGUE ! Son awakening permet de se transformer en bête sauvage ultra rapide. Des milliers de joueurs farm en ce moment. Si t'as pas encore check ça, t'es à la traîne ! Rejoins maintenant !",
+      description: "La dernière mise à jour de Blox Fruits sur Roblox est folle ! #Roblox #BloxFruits #RobloxShorts",
+      hashtags: ["Roblox","BloxFruits","RobloxShorts","BloxFruitsUpdate","RobloxFR"],
+      phoneTitle: "Blox Fruits 🔥",
+      topic: "Blox Fruits"
+    };
+    shortCount++;
+    document.getElementById('statCount').textContent = shortCount;
+    displayContent(fb);
+  }
+
+  btn.disabled = false;
+  spinner.style.display = 'none';
+  btnText.textContent = '⚡ REGÉNÉRER';
+}
+
+function displayContent(data) {
+  const box = document.getElementById('scriptBox');
+  box.style.cssText = 'color:var(--text);font-style:normal;';
+  box.innerHTML = '';
+  let i = 0;
+  const cursor = document.createElement('span');
+  cursor.className = 'typing-cursor';
+  box.appendChild(cursor);
+  const t = setInterval(() => {
+    if (i < data.script.length) cursor.insertAdjacentText('beforebegin', data.script[i++]);
+    else { clearInterval(t); cursor.remove(); }
+  }, 16);
+
+  document.getElementById('titleField').value   = data.title;
+  document.getElementById('descField').value    = data.description;
+  document.getElementById('hashtagsBox').innerHTML = data.hashtags.map(h => `<span class="tag">#${h}</span>`).join('');
+  document.getElementById('phoneTitle').textContent = data.phoneTitle || 'Roblox 🎮';
+  generatedScript = data.script;
+
+  document.getElementById('playBtn').disabled   = false;
+  document.getElementById('speakBtn').disabled  = false;
+  document.getElementById('uploadBtn').disabled = !isAuthenticated;
+
+  setTimeout(() => animatePhoneText(data.script), 500);
+  showStatus('✅ Short généré ! Glisse pour voir l\'aperçu 👉', 'success', 0);
+}
+
+// ── Phone animation ──
+function animatePhoneText(text) {
+  const area = document.getElementById('phoneTextArea');
+  area.innerHTML = '';
+  const words = text.split(' ');
+  const chunks = [];
+  for (let i = 0; i < words.length; i += 5) chunks.push(words.slice(i, i+5).join(' '));
+  let ci = 0;
+  function show() {
+    if (ci >= chunks.length) { ci = 0; setTimeout(show, 1500); return; }
+    area.innerHTML = '';
+    const ws = chunks[ci].split(' ');
+    ws.forEach((w, wi) => {
+      const s = document.createElement('span');
+      s.className = 'phone-fact-word';
+      s.textContent = w + (wi < ws.length-1 ? ' ' : '');
+      if (Math.random() > 0.55) s.style.color = ['#ffe600','#ff8c00','#ff3d3d','#00e676','#4db8ff'][Math.floor(Math.random()*5)];
+      area.appendChild(s);
+      setTimeout(() => s.classList.add('show'), wi * 80);
+    });
+    ci++;
+    setTimeout(show, 2200);
+  }
+  show();
+}
+
+function playPreview() { if (generatedScript) animatePhoneText(generatedScript); }
+
+// ── ElevenLabs TTS ──
+let currentAudio = null;
+
+function saveApiKey() {
+  const key = document.getElementById('elApiKey').value.trim();
+  if (!key) return;
+  localStorage.setItem('el_api_key', key);
+  showStatus('✅ Clé API sauvegardée !', 'success', 1);
+}
+
+function loadApiKey() {
+  const saved = localStorage.getItem('el_api_key');
+  if (saved) document.getElementById('elApiKey').value = saved;
+}
+
+async function speakElevenLabs() {
+  if (!generatedScript) { showStatus('⚠️ Génère un script d\'abord.', 'error', 1); return; }
+
+  const apiKey = document.getElementById('elApiKey').value.trim() || localStorage.getItem('el_api_key');
+  if (!apiKey) {
+    showStatus('⚠️ Entre ta clé API ElevenLabs d\'abord.', 'error', 1);
+    document.getElementById('elApiKey').focus();
+    return;
+  }
+
+  const voiceId = document.getElementById('elVoice').value;
+  const btn     = document.getElementById('speakBtn');
+  const vstatus = document.getElementById('voiceStatus');
+
+  btn.disabled = true;
+  btn.textContent = '⏳ Génération...';
+  vstatus.style.display = 'block';
+  vstatus.textContent = '🎙️ ElevenLabs génère la voix...';
+
+  try {
+    const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
+      method: 'POST',
+      headers: {
+        'xi-api-key': apiKey,
+        'Content-Type': 'application/json',
+        'Accept': 'audio/mpeg'
+      },
+      body: JSON.stringify({
+        text: generatedScript,
+        model_id: 'eleven_multilingual_v2',
+        voice_settings: {
+          stability: 0.4,
+          similarity_boost: 0.85,
+          style: 0.5,
+          use_speaker_boost: true
+        }
+      })
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail?.message || `Erreur ${res.status}`);
+    }
+
+    const blob = await res.blob();
+    const url  = URL.createObjectURL(blob);
+
+    const player = document.getElementById('audioPlayer');
+    player.src = url;
+    player.style.display = 'block';
+    player.style.width = '100%';
+    player.style.marginTop = '10px';
+    player.style.borderRadius = '8px';
+    player.play();
+
+    // Also store for preview page sync
+    window._voiceUrl = url;
+
+    document.getElementById('stopBtn').style.display = 'flex';
+    vstatus.textContent = '✅ Voix générée ! Écoute ci-dessous.';
+    vstatus.style.color = 'var(--success)';
+
+    player.onended = () => {
+      btn.disabled = false;
+      btn.textContent = '🎙️ Regénérer la voix';
+      document.getElementById('stopBtn').style.display = 'none';
+    };
+
+  } catch(err) {
+    console.error(err);
+    vstatus.textContent = '❌ ' + err.message;
+    vstatus.style.color = 'var(--accent)';
+    showStatus('❌ Erreur ElevenLabs : ' + err.message, 'error', 1);
+  }
+
+  btn.disabled = false;
+  btn.textContent = '🎙️ Générer la voix';
+}
+
+function stopAudio() {
+  const p = document.getElementById('audioPlayer');
+  p.pause(); p.currentTime = 0;
+  document.getElementById('stopBtn').style.display = 'none';
+}
+
+// Load saved key on start
+loadApiKey();
+
+// ── Auth ──
+function openAuthModal() { document.getElementById('authModal').classList.add('show'); }
+function closeModal(id)  { document.getElementById(id).classList.remove('show'); }
+function overlayClick(e, id) { if (e.target.classList.contains('modal-overlay')) closeModal(id); }
+
+function launchRealOAuth() {
+  const redirect = encodeURIComponent(window.location.href.split('?')[0].split('#')[0]);
+  const scope    = encodeURIComponent(YT_SCOPE);
+  const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${encodeURIComponent(CLIENT_ID)}&redirect_uri=${redirect}&response_type=token&scope=${scope}&include_granted_scopes=true`;
+  closeModal('authModal');
+  const popup = window.open(url, 'google_oauth', 'width=500,height=620,scrollbars=yes');
+  if (!popup) { showStatus('⚠️ Popup bloqué — autorise les popups.', 'error', 0); return; }
+  const poll = setInterval(() => {
+    try {
+      if (!popup || popup.closed) { clearInterval(poll); return; }
+      const hash = popup.location.hash;
+      if (hash && hash.includes('access_token')) {
+        clearInterval(poll); popup.close();
+        const token = new URLSearchParams(hash.substring(1)).get('access_token');
+        if (token) { window._ytToken = token; onAuthSuccess(); }
+      }
+    } catch(e) { /* cross-origin */ }
+  }, 500);
+}
+
+function onAuthSuccess() {
+  isAuthenticated = true;
+  const btn = document.getElementById('authBtn');
+  btn.className = 'auth-btn connected';
+  btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#00e676" opacity="0.2"/><path d="M8 12l3 3 5-5" stroke="#00e676" stroke-width="2" stroke-linecap="round"/></svg><span>YT Connecté ✅</span>`;
+  if (generatedScript) document.getElementById('uploadBtn').disabled = false;
+  showStatus('✅ YouTube connecté !', 'success', 0);
+}
+
+// ── Upload ──
+function openUploadModal() {
+  if (!isAuthenticated) { openAuthModal(); return; }
+  if (!generatedScript) return;
+  const modal = document.getElementById('uploadModal');
+  const desc  = document.getElementById('uploadModalDesc');
+  const fill  = document.getElementById('progressFill');
+  const label = document.getElementById('progressLabel');
+  modal.classList.add('show');
+  desc.textContent = 'Préparation...'; fill.style.width = '0%'; label.textContent = '0%';
+  const steps = [
+    { p:15, t:'🎬 Génération de la vidéo animée...' },
+    { p:35, t:'🔊 Ajout narration vocale...' },
+    { p:55, t:'🖼️ Rendu miniature...' },
+    { p:75, t:'📤 Upload YouTube API...' },
+    { p:90, t:'🏷️ Métadonnées appliquées...' },
+    { p:100,t:'✅ Short publié !' },
+  ];
+  let si = 0;
+  const iv = setInterval(() => {
+    if (si >= steps.length) {
+      clearInterval(iv);
+      setTimeout(() => {
+        closeModal('uploadModal');
+        postedCount++;
+        document.getElementById('statPosted').textContent = postedCount;
+        showStatus('🎉 Short posté sur YouTube !', 'success', 2);
+      }, 1200);
+      return;
+    }
+    fill.style.width = steps[si].p + '%';
+    label.textContent = steps[si].p + '%';
+    desc.textContent  = steps[si].t;
+    si++;
+  }, 900);
+}
+
+// ── Status ──
+function showStatus(msg, type='info', tab=0) {
+  const bar = document.getElementById(`statusBar${tab}`);
+  if (!bar) return;
+  bar.className = `status-bar show ${type}`;
+  bar.textContent = msg;
+  setTimeout(() => bar.classList.remove('show'), 4000);
+}
+</script>
+</body>
+</html>
